@@ -43,7 +43,9 @@ degree = 5
 model_poly = make_pipeline(PolynomialFeatures(degree), LinearRegression())
 X = data_util_PA[['ANO']].values   
 y = data_util_PA['PREÇO'].values
+
 model_poly.fit(X, y)
+
 y_pred = model_poly.predict(X)
 mae = mean_absolute_error(y, y_pred)
 
@@ -55,5 +57,4 @@ predict_max = predict_2025 * (1 + mae)
 print(data_util_PA)
 print(f'PREÇO MÍNIMO: {predict_min[0]:.2f}\nPREÇO MÁXIMO: {predict_max[0]:.2f}')
 
-print(f'Preço previsto para 2025: R$ {predict_2025[0]:.2f}')
 print(f'Erro médio absoluto (MAE) do modelo: {mae:.4f}')
