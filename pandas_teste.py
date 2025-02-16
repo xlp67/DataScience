@@ -28,33 +28,35 @@ def FilterPrincePerYear(state, product):
 
     return data_prince_per_year
 
-def PlotData(data, column1, column2):
-    return plt.scatter(data[column1], data[column2])
+def PlotData(data):
+    print(data)
+    return plt.scatter(data['ANO'], data['PREÇO'])
     
-data_util_SC = FilterPrincePerYear('SANTA CATARINA', 'GASOLINA COMUM')
-data_util_PA = FilterPrincePerYear('PARA', 'GASOLINA COMUM')
+data_util_PA_Etanol = FilterPrincePerYear('PARA', 'ETANOL HIDRATADO')
+data_util_PA_Gasolina = FilterPrincePerYear('PARA', 'GASOLINA COMUM')
+PlotData(data_util_PA_Etanol)
+PlotData(data_util_PA_Gasolina)
+plt.show()
 
-# PlotData(data_util_SC, 'ANO', 'PREÇO')
-# PlotData(data_util_PA, 'ANO', 'PREÇO')
-# plt.show()
 
 
-degree = 5
-model_poly = make_pipeline(PolynomialFeatures(degree), LinearRegression())
-X = data_util_PA[['ANO']].values   
-y = data_util_PA['PREÇO'].values
+# degree = 5
+# model_poly = make_pipeline(PolynomialFeatures(degree), LinearRegression())
+# X = data_util_PA[['ANO']].values   
+# y = data_util_PA['PREÇO'].values
 
-model_poly.fit(X, y)
+# model_poly.fit(X, y)
 
-y_pred = model_poly.predict(X)
-mae = mean_absolute_error(y, y_pred)
+# y_pred = model_poly.predict(X)
+# mae = mean_absolute_error(y, y_pred)
 
-predict_2025 = model_poly.predict([[2026]])
+# predict_2025 = model_poly.predict([[2014]])
 
-predict_min = predict_2025 * (1 - mae)
-predict_max = predict_2025 * (1 + mae)
+# predict_min = predict_2025 * (1 - mae)
+# predict_max = predict_2025 * (1 + mae)
 
-print(data_util_PA)
-print(f'PREÇO MÍNIMO: {predict_min[0]:.2f}\nPREÇO MÁXIMO: {predict_max[0]:.2f}')
+# print(data_util_PA)
+# print(f'PREÇO MÍNIMO: {predict_min[0]:.2f}\nPREÇO MÁXIMO: {predict_max[0]:.2f}\nPREÇO MÉDIO: {predict_2025[0]:.2f}')
 
-print(f'Erro médio absoluto (MAE) do modelo: {mae:.4f}')
+# print(f'Erro médio absoluto (MAE) do modelo: {mae:.4f}')
+
