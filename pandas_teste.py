@@ -9,7 +9,7 @@ from sklearn.metrics import mean_absolute_error
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 def DataPerState(state, product):
-    data_prince = pd.read_csv('../../Downloads/GasPricesinBrazil_2004-2019.csv', sep=';')
+    data_prince = pd.read_csv('./GasPricesinBrazil_2004-2019.csv', sep=';')
     return data_prince[
                           (data_prince['ESTADO'] == state) & 
                           (data_prince['PRODUTO'] == product)
