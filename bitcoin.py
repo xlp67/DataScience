@@ -1,48 +1,57 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from prophet import Prophet  
-from sklearn.metrics import mean_absolute_error
+import matplotlib.pyplot as mp
+import numpy as np
+import numpy.polynomial as Polynomial
 
-bitcoin_data = pd.read_csv('./bitcoin_historical_data.csv', sep=',', encoding='utf-8')
+df = pd.read_csv('GasPricesinBrazil_2004-2019.csv', sep=';')
 
-bitcoin_data['Date'] = pd.to_datetime(bitcoin_data['Date'], format='%m/%d/%Y')  
-bitcoin_data['Price'] = bitcoin_data['Price'].str.replace(',', '').astype(float)  
+dfFilter = df[(df['ESTADO'] == 'SAO PAULO') & (df['PRODUTO'] == 'GASOLINA COMUM')]
+dfFilter['DATA FINAL'] = pd.to_datetime(dfFilter['DATA FINAL'])
 
-df = bitcoin_data[['Date', 'Price']].rename(columns={'Date': 'ds', 'Price': 'y'})
+dfFilter['DATA FINAL'] = dfFilter['DATA FINAL'].dt.year
 
-model = Prophet(
-    daily_seasonality=False, 
-    yearly_seasonality=True, 
-    weekly_seasonality=True,
-    seasonality_prior_scale=10,  
-    changepoint_prior_scale=0.05  
-)
+dataUtils = {}
 
-model.add_seasonality(name='monthly', period=30.5, fourier_order=8)  
+for year in dfFilter['DATA FINAL'].unique():
+    prices = dfFilter[dfFilter['DATA FINAL'] == year]['PREÇO MÉDIO REVENDA'].values
+    dataUtils[year] = np.mean(prices)
 
-model.add_country_holidays(country_name='US')  
+media_global = np.mean(list(dataUtils.values()))
+erro_quadratico = []
 
-model.fit(df)
+for i in dataUtils.values():
+    erro_quadratico.append((media_global - i)**2)
 
-future = model.make_future_dataframe(periods=730, freq='D')  
-forecast = model.predict(future)
+a, b = np.polyfit(list(dataUtils.keys()), list(dataUtils.values()), deg=1)
 
-plt.figure(figsize=(12, 6))
-plt.plot(df['ds'], df['y'], label="Dados Reais", color='blue', alpha=0.6)  
-plt.plot(forecast['ds'], forecast['yhat'], label="Previsão", color='red')  
-plt.fill_between(forecast['ds'], forecast['yhat_lower'], forecast['yhat_upper'], color='gray', alpha=0.2)  
+prices_linear = []
+quadratico_linear = []
+for year in dataUtils.keys():
+    prices_linear.append(a * year + b)
+    quadratico_linear.append((a * year + b - media_global)**2)
 
-plt.title('Previsão do Preço do Bitcoin (2025-2026) - Modelo Prophet', fontsize=14)
-plt.xlabel('Tempo', fontsize=12)
-plt.ylabel('Preço de Fechamento (USD)', fontsize=12)
-plt.legend()
-plt.xticks(rotation=45)
-plt.grid(True, linestyle='--', alpha=0.5)
-plt.tight_layout() 
-plt.show()
 
-y_true = df['y']
-y_pred = forecast['yhat'][:len(df)]
-mae = mean_absolute_error(y_true, y_pred)
+mp.scatter(dataUtils.keys(), dataUtils.values(), label='Preços Originais', color='blue')
+mp.scatter(dataUtils.keys(), prices_linear, label='Preços Ajustados Linearmente', color='red')
+mp.scatter(dataUtils.keys(), erro_quadratico, label='Erro Quadrático', color='green')
+mp.scatter(dataUtils.keys(), quadratico_linear, label='Erro Quadrático Linear', color='purple')
 
-print(f"Erro médio absoluto do modelo: {mae:.2f} USD")
+for x, y in zip(dataUtils.keys(), dataUtils.values()):
+    mp.text(x, y, f'{y:.2f}', fontsize=6, ha='right', color='blue')
+
+for x, y in zip(dataUtils.keys(), prices_linear):
+    mp.text(x, y, f'{y:.2f}', fontsize=6, ha='right', color='red')
+
+for x, y in zip(dataUtils.keys(), erro_quadratico):
+    mp.text(x, y, f'{y:.2f}', fontsize=6, ha='right', color='green')
+
+for x, y in zip(dataUtils.keys(), quadratico_linear):
+    mp.text(x, y, f'{y:.2f}', fontsize=6, ha='right', color='purple')
+
+
+mp.title('Análise de Preços de Gasolina - Pará')
+mp.xlabel('Ano')
+mp.ylabel('Preço / Erro Quadrático / Erro Quadrático Linear')
+mp.legend()
+
+mp.show()
